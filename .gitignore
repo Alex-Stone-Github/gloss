@@ -21,3 +21,11 @@ Cargo.lock
 
 #/target
 /Cargo.lock
+
+
+#################
+# Custom
+#################
+
+cpp/bin
+cpp/build

@@ -1,64 +1,68 @@
-pub trait Evaluable {
-    fn eval(&self) -> f32;
+//
+// Alex Stone, Testing
+//
+
+type Value = f64;
+
+
+pub trait ComputationGraphNode {
+    fn evaluate(&self) -> Value;
+    fn requires_grad(&self) -> bool;
+    fn backward(&mut self) -> (); // weird placeholder
 }
 
-// Leaf
+
+
 pub struct Leaf {
-    value: f32,
-    requires_grad: bool,  // naughty dead code will be used later
+    value: Value,
+    requires_grad: bool,
 }
 impl Leaf {
-    pub fn new(value: f32) -> Self {
-        Self{value, requires_grad: false}
+    pub fn new(value: Value, requires_grad: bool) -> Self {
+        Self {
+            value,
+            requires_grad,
+        }
     }
 }
-impl Evaluable for Leaf {
-    fn eval(&self) -> f32 {
-        self.value
+impl ComputationGraphNode for Leaf {
+    fn evaluate(&self) -> Value { self.value }
+    fn requires_grad(&self) -> bool { self.requires_grad }
+    fn backward(&mut self) {
+        self.value = 3.3;
+        return ();
     }
 }
 
 
-// Ops
+// one thing to note about this struct is that it can only exist when its internal references live
+// as long as the struct instance
 pub struct Addition<'a> {
-    a: &'a dyn Evaluable,
-    b: &'a dyn Evaluable,
+    refa: &'a dyn ComputationGraphNode,
+    refb: &'a dyn ComputationGraphNode,
 }
-impl<'a> Addition<'a> {
-    pub fn new(a: &'a dyn Evaluable, b: &'a dyn Evaluable) -> Self {
-        Self{a, b}
+impl<'a> Addition<'a> { // this creates a new Self given args of a generic lifetime
+    pub fn new(a: &'a dyn ComputationGraphNode, b: &'a dyn ComputationGraphNode) -> Self {
+        Self {
+            refa: a,
+            refb: b,
+        }
     }
 }
-impl<'a> Evaluable for Addition<'a> {
-    fn eval(&self) -> f32 {
-        self.a.eval() + self.b.eval()
+impl<'a> ComputationGraphNode for Addition<'a> { // this is just a generic lifetime implementation
+    fn evaluate(&self) -> Value {
+        self.refa.evaluate() + self.refb.evaluate()
+    }
+    fn requires_grad(&self) -> bool {
+        self.refa.requires_grad() || self.refb.requires_grad()
+    }
+    fn backward(&mut self) -> () {
+        ()
     }
 }
-pub struct Subtraction<'a> {
-    a: &'a dyn Evaluable,
-    b: &'a dyn Evaluable,
-}
-impl<'a> Subtraction<'a> {
-    pub fn new(a: &'a dyn Evaluable, b: &'a dyn Evaluable) -> Self {
-        Self{a, b}
-    }
-}
-impl<'a> Evaluable for Subtraction<'a> {
-    fn eval(&self) -> f32 {
-        self.a.eval() - self.b.eval()
-    }
-}
-pub struct Multiplication<'a> {
-    a: &'a dyn Evaluable,
-    b: &'a dyn Evaluable,
-}
-impl<'a> Multiplication<'a> {
-    pub fn new(a: &'a dyn Evaluable, b: &'a dyn Evaluable) -> Self {
-        Self{a, b}
-    }
-}
-impl<'a> Evaluable for Multiplication<'a> {
-    fn eval(&self) -> f32 {
-        self.a.eval() * self.b.eval()
-    }
-}
+
+
+
+
+
+

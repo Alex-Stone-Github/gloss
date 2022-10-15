@@ -1,30 +1,47 @@
-mod graph;
+
+pub use gloss_tensor::*;
+
+pub mod graph;
+pub mod operation;
 
 pub fn hi() {
     println!("Hi");
+
+    let mut leaf1 = graph::Leaf::new(gloss_tensor::full(&[1], 3.3), true);
+    let mut leaf2 = graph::Leaf::new(gloss_tensor::full(&[1], 6.6), true);
+    let mut leaf3 = graph::Leaf::new(gloss_tensor::full(&[1], 2.0), true);
+    {
+        let mut opr_mul = operation::Addition::new(&mut leaf1, &mut leaf2);
+        let mut opr_add = operation::Multiplication::new(&mut opr_mul, &mut leaf3);
+        opr_add.backward(gloss_tensor::full(&[1], 1.0));
+    }
+    use crate::graph::ComputationNode;
+    println!("{:?}", leaf1);
+    println!("{:?}", leaf2);
+    println!("{:?}", leaf3);
 }
 
+
+
+
+
+
+
+/*
 #[cfg(test)]
 mod test {
     #[test]
     fn correct_values_and_requires_grads() {
-        let leaf1 = crate::graph::Leaf::new(3.3, true);
-        let leaf2 = crate::graph::Leaf::new(6.6, true);
-
-        let opr = crate::graph::Addition::new(&leaf1, &leaf2);
-
+        let mut leaf1 = crate::graph::Leaf::new(gloss_tensor::full(&[1], 3.3), true);
+        let mut leaf2 = crate::graph::Leaf::new(gloss_tensor::full(&[1], 6.6), true);
 
         {
-            use crate::graph::ComputationGraphNode;
-            println!("{}{}", leaf1.requires_grad(), leaf1.evaluate());
-            assert_eq!(leaf1.requires_grad(), true);
-            assert_eq!(leaf1.evaluate(), 3.3);
-            println!("{}{}", leaf2.requires_grad(), leaf2.evaluate());
-            assert_eq!(leaf2.requires_grad(), true);
-            assert_eq!(leaf2.evaluate(), 6.6);
-            println!("{}{}", opr.requires_grad(), opr.evaluate());
-            assert_eq!(opr.requires_grad(), true);
-            assert_eq!(opr.evaluate(), 9.9);
+            let mut opr = crate::operation::Addition::new(&mut leaf1, &mut leaf2);
         }
+
+        use crate::graph::ComputationNode;
+        println!("{:?}", leaf1);
+        println!("{:?}", leaf2);
     }
 }
+*/

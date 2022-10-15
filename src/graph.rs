@@ -1,68 +1,34 @@
 //
 // Alex Stone, Testing
 //
+pub type Value = gloss_tensor::Tensor<f64>;
 
-type Value = f64;
-
-
-pub trait ComputationGraphNode {
+pub trait ComputationNode {
     fn evaluate(&self) -> Value;
     fn requires_grad(&self) -> bool;
-    fn backward(&mut self) -> (); // weird placeholder
+    fn backward(&mut self, gradient: Value); // weird placeholder
 }
 
-
-
+#[derive(Debug)]
 pub struct Leaf {
     value: Value,
     requires_grad: bool,
+    grad: Value
 }
 impl Leaf {
     pub fn new(value: Value, requires_grad: bool) -> Self {
+        let grad = gloss_tensor::full(value.shape(), 0.0);
         Self {
             value,
             requires_grad,
+            grad
         }
     }
 }
-impl ComputationGraphNode for Leaf {
-    fn evaluate(&self) -> Value { self.value }
+impl ComputationNode for Leaf {
+    fn evaluate(&self) -> Value { self.value.clone() }
     fn requires_grad(&self) -> bool { self.requires_grad }
-    fn backward(&mut self) {
-        self.value = 3.3;
-        return ();
+    fn backward(&mut self, gradient: Value) {
+        self.grad = gloss_tensor::add(&self.grad, &gradient).unwrap();
     }
 }
-
-
-// one thing to note about this struct is that it can only exist when its internal references live
-// as long as the struct instance
-pub struct Addition<'a> {
-    refa: &'a dyn ComputationGraphNode,
-    refb: &'a dyn ComputationGraphNode,
-}
-impl<'a> Addition<'a> { // this creates a new Self given args of a generic lifetime
-    pub fn new(a: &'a dyn ComputationGraphNode, b: &'a dyn ComputationGraphNode) -> Self {
-        Self {
-            refa: a,
-            refb: b,
-        }
-    }
-}
-impl<'a> ComputationGraphNode for Addition<'a> { // this is just a generic lifetime implementation
-    fn evaluate(&self) -> Value {
-        self.refa.evaluate() + self.refb.evaluate()
-    }
-    fn requires_grad(&self) -> bool {
-        self.refa.requires_grad() || self.refb.requires_grad()
-    }
-    fn backward(&mut self) -> () {
-        ()
-    }
-}
-
-
-
-
-
-

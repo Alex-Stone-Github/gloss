@@ -8,7 +8,7 @@ pub fn hi() {
     println!("Hi");
 
     let mut leaf1 = graph::Leaf::new(gloss_tensor::full(&[1], 3.3), true);
-    let mut leaf2 = graph::Leaf::new(gloss_tensor::full(&[1], 6.6), true);
+    let mut leaf2 = graph::Leaf::new(gloss_tensor::full(&[1], 6.6), false);
     let mut leaf3 = graph::Leaf::new(gloss_tensor::full(&[1], 2.0), true);
     {
         let mut opr_mul = operation::Addition::new(&mut leaf1, &mut leaf2);
@@ -19,6 +19,30 @@ pub fn hi() {
     println!("{:?}", leaf1);
     println!("{:?}", leaf2);
     println!("{:?}", leaf3);
+
+    // tranpose test
+    let t = gloss_tensor::range(&[3, 2]).map(|x| x + 1);
+    println!("{:?}", t);
+    let transposed = gloss_tensor::transpose(&t).unwrap();
+    println!("{:?}", transposed);
+    let retransposed = gloss_tensor::transpose(&transposed).unwrap();
+    println!("{:?}", retransposed);
+
+
+    {
+        let mut w = graph::Leaf::variable(gloss_tensor::random_norm(&[3, 3]), true);
+        let mut x = graph::Leaf::constant(gloss_tensor::random_norm(&[3, 1]), false);
+        {
+            let mut y = operation::Matmul::new(&mut w, &mut x);
+            println!("done");
+            y.backward(gloss_tensor::full(&[3, 1], 1.0));
+        }
+        println!("{:?}", x);
+        println!("{:?}", w);
+
+    }
+
+
 }
 
 

@@ -34,6 +34,11 @@ impl Leaf {
             grad: None
         }
     }
+    pub fn modify(&mut self, lr: f64) {
+    }
+    pub fn wipe_grad(&mut self) {
+        self.grad = None;
+    }
 }
 impl ComputationNode for Leaf {
     fn evaluate(&self) -> Value { self.value.clone() }

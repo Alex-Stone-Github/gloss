@@ -45,7 +45,12 @@ pub fn hi() {
 
 }
 
-
+pub fn constant(value: graph::Value) -> graph::Leaf {
+    graph::Leaf::new(value, false) // does not require grad
+}
+pub fn variable(value: graph::Value) -> graph::Leaf {
+    graph::Leaf::new(value, true) // does require grad
+}
 
 
 
